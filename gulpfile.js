@@ -76,11 +76,6 @@ gulp.task('html', function() {
 ///////////////////////////////
 gulp.task('cleanupDist', function(cb) {
   del.sync([paths.tmplOutputFolder]);
-  /*return del([
-    paths.tmplOutputFolder
-  ], {dryRun: false}).then(paths => {
-    console.log('Dist folder delted:\n', paths.join('\n'));
-  });*/
 });
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
