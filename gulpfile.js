@@ -62,6 +62,12 @@ gulp.task('js', function(){
   .pipe(reload({stream: true}));
 });
 
+gulp.task('jsLibs', function(){
+  gulp.src([paths.jsInputFolder + '**/*.min.js'])
+  .pipe(gulp.dest(paths.jsOutputFolder))
+  .pipe(reload({stream: true}));
+});
+
 ///////////////////////////////
 // HTML Tasks
 ///////////////////////////////
@@ -132,7 +138,7 @@ gulp.task('watch', function(){
 });
 
 // default `gulp` task
-gulp.task('default', ['cleanupDist','scss','js', 'html', 'watch', 'browser-sync']);
+gulp.task('default', ['cleanupDist','scss', 'jsLibs','js', 'html', 'watch', 'browser-sync']);
 
 // builder with minify (css and js) files `gulp build`
-gulp.task('build', ['cleanupDist','html', 'build:js', 'build:scss']);
+gulp.task('build', ['cleanupDist','html', 'jsLibs', 'build:js', 'build:scss']);
