@@ -1,0 +1,23 @@
+/*!
+ * PROJECT - v1.0.0
+ * Copyright 2017
+*/
+
+// custom colors and framework overwrites
+@import 'base/variables';
+
+// Framework
+@import 'vendor/bootstrap-includes';
+
+// base settings
+@import 'base/mixins';
+
+
+// Layout Parts
+@import 'layout/header';
+@import 'layout/navigation';
+@import 'layout/main';
+@import 'layout/footer';
+
+//  Special Pages
+@import 'pages/page-404';
