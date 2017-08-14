@@ -27,7 +27,9 @@ var projectInputPath = 'app',
       jsInputFolder: projectInputPath + '/js/',
       jsOutputFolder: projectOutputPath + '/js/',
       tmplInputFolder: projectInputPath + '/',
-      tmplOutputFolder: projectOutputPath + '/'
+      tmplOutputFolder: projectOutputPath + '/',
+      imgInputFolder: projectInputPath + '/images/',
+      imgOutputFolder: projectOutputPath + '/images/'
     };
 
 // Debug file or pathauto `gulp debug:fileorpath`
@@ -49,7 +51,7 @@ gulp.task('scss', function() {
   .pipe(autoprefixer({browsers: ['last 2 version', 'ie 9', 'ie 10',  'Android 4.4']}))
   .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest(paths.cssOutputFolder))
-  .pipe(reload({stream: true}));
+  .pipe(browserSync.stream({match: '**/*.css'}));
 });
 ///////////////////////////////
 // Script Tasks
@@ -64,8 +66,7 @@ gulp.task('js', function(){
 
 gulp.task('jsLibs', function(){
   gulp.src([paths.jsInputFolder + '**/*.min.js'])
-  .pipe(gulp.dest(paths.jsOutputFolder))
-  .pipe(reload({stream: true}));
+  .pipe(gulp.dest(paths.jsOutputFolder));
 });
 
 ///////////////////////////////
@@ -73,8 +74,15 @@ gulp.task('jsLibs', function(){
 ///////////////////////////////
 gulp.task('html', function() {
   gulp.src(paths.tmplInputFolder + '*.html')
-  .pipe(gulp.dest(paths.tmplOutputFolder))
-  .pipe(reload({stream: true}));
+  .pipe(gulp.dest(paths.tmplOutputFolder));
+});
+
+///////////////////////////////
+// Image Tasks
+///////////////////////////////
+gulp.task('images', function() {
+  gulp.src(paths.imgInputFolder + '*.*')
+  .pipe(gulp.dest(paths.imgOutputFolder));
 });
 
 ///////////////////////////////
@@ -132,13 +140,18 @@ gulp.task('build:js', function(){
 
 // Watch Task
 gulp.task('watch', function(){
-  gulp.watch(paths.jsInputFolder + '**/*.js', ['js']);
-  gulp.watch(paths.scssInputFolder + '**/*.scss', ['scss']);
-  gulp.watch(paths.tmplInputFolder + '*.html', ['html']);
+  gulp.watch(paths.jsInputFolder + '**/*.js', ['js']).on('change', browserSync.reload);
+  gulp.watch(paths.scssInputFolder + '**/*.scss', ['scss']).on('change', browserSync.reload);
+  gulp.watch(paths.tmplInputFolder + '*.html', ['html']).on('change', browserSync.reload);
+  gulp.watch(paths.imgInputFolder + '*.*', ['images']).on('change', browserSync.reload);
 });
 
 // default `gulp` task
-gulp.task('default', ['cleanupDist','scss', 'jsLibs','js', 'html', 'watch', 'browser-sync']);
+gulp.task('default', ['cleanupDist','scss', 'jsLibs', 'js', 'html', 'images', 'watch', 'browser-sync']);
+
+/*gulp.task('default', function () {
+  runSequence('cleanupDist','scss', 'jsLibs', 'js', 'html', 'images', 'browser-sync','watch');
+}); -> runSequence must be installed*/
 
 // builder with minify (css and js) files `gulp build`
-gulp.task('build', ['cleanupDist','html', 'jsLibs', 'build:js', 'build:scss']);
+gulp.task('build', ['cleanupDist','html', 'images', 'jsLibs', 'build:js', 'build:scss']);
