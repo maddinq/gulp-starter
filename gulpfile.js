@@ -4,8 +4,7 @@
 var gulp = require('gulp'),
     sass = require('gulp-sass'),
     uglify = require('gulp-uglify'),
-    browserSync = require('browser-sync'),
-    reload = browserSync.reload,
+    browserSync = require("browser-sync").create(),
     plumber = require('gulp-plumber'),
     autoprefixer = require('gulp-autoprefixer'),
     sourcemaps = require('gulp-sourcemaps'),
@@ -13,13 +12,14 @@ var gulp = require('gulp'),
     jshint = require('gulp-jshint'),
     rename = require('gulp-rename'),
     notify = require("gulp-notify"),
+    revts = require('gulp-rev-timestamp'),
     del = require('del');
 
 ///////////////////////////////
 // Definition of paths
 ///////////////////////////////
 var projectInputPath = 'app',
-    projectOutputPath = 'dist',
+    projectOutputPath = 'public',
     paths = {
       base: projectOutputPath + '/',
       cssOutputFolder: projectOutputPath + '/css/',
@@ -29,7 +29,9 @@ var projectInputPath = 'app',
       tmplInputFolder: projectInputPath + '/',
       tmplOutputFolder: projectOutputPath + '/',
       imgInputFolder: projectInputPath + '/images/',
-      imgOutputFolder: projectOutputPath + '/images/'
+      imgOutputFolder: projectOutputPath + '/images/',
+      fontsInputFolder: projectInputPath + '/fonts/',
+      fontsOutputFolder: projectOutputPath + '/fonts/'
     };
 
 // Debug file or pathauto `gulp debug:fileorpath`
@@ -51,7 +53,7 @@ gulp.task('scss', function() {
   .pipe(autoprefixer({browsers: ['last 2 version', 'ie 9', 'ie 10',  'Android 4.4']}))
   .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest(paths.cssOutputFolder))
-  .pipe(browserSync.stream({match: '**/*.css'}));
+  .pipe(browserSync.stream());
 });
 ///////////////////////////////
 // Script Tasks
@@ -61,7 +63,7 @@ gulp.task('js', function(){
   .pipe(jshint('.jshintrc'))
   .pipe(jshint.reporter('jshint-stylish', {beep: true}))
   .pipe(gulp.dest(paths.jsOutputFolder))
-  .pipe(reload({stream: true}));
+  .pipe(browserSync.stream());
 });
 
 gulp.task('jsLibs', function(){
@@ -74,7 +76,9 @@ gulp.task('jsLibs', function(){
 ///////////////////////////////
 gulp.task('html', function() {
   gulp.src(paths.tmplInputFolder + '*.html')
-  .pipe(gulp.dest(paths.tmplOutputFolder));
+  .pipe(revts())
+  .pipe(gulp.dest(paths.tmplOutputFolder))
+  .pipe(browserSync.stream());
 });
 
 ///////////////////////////////
@@ -86,23 +90,36 @@ gulp.task('images', function() {
 });
 
 ///////////////////////////////
+// Fonts Tasks
+///////////////////////////////
+gulp.task('fonts', function(){
+  //gulp.src([paths.fontsInputFolder + '**/*'])
+  //.pipe(gulp.dest(paths.fontsOutputFolder));
+});
+
+///////////////////////////////
 // Cleanup Dist Folder
 ///////////////////////////////
 gulp.task('cleanupDist', function(cb) {
-  del.sync([paths.tmplOutputFolder]);
+  return del.sync([paths.tmplOutputFolder]);
 });
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////
-// Browser-Sync Tasks
+// Serve Task with Browser-Sync Tasks
 ///////////////////////////////
-gulp.task('browser-sync', function(){
-  browserSync({
-    server: {
-      baseDir: './dist/'
-    }
-  });
+gulp.task('serve', ['devWorker'], function() {
+
+    browserSync.init({
+        server: "./public/"
+    });
+
+    gulp.watch(paths.scssInputFolder + '**/*.scss', ['scss']);
+    gulp.watch(paths.jsInputFolder + '**/*.js', ['js']);
+    gulp.watch(paths.tmplInputFolder + '*.html'), ['html'];
+    gulp.watch(paths.dataInputFolder + '**/*', ['data']).on('change', browserSync.reload);
+    gulp.watch(paths.imgInputFolder + '*.*', ['images']).on('change', browserSync.reload);
 });
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,19 +156,12 @@ gulp.task('build:js', function(){
 ///////////////////////////////
 
 // Watch Task
-gulp.task('watch', function(){
-  gulp.watch(paths.jsInputFolder + '**/*.js', ['js']).on('change', browserSync.reload);
-  gulp.watch(paths.scssInputFolder + '**/*.scss', ['scss']).on('change', browserSync.reload);
-  gulp.watch(paths.tmplInputFolder + '*.html', ['html']).on('change', browserSync.reload);
-  gulp.watch(paths.imgInputFolder + '*.*', ['images']).on('change', browserSync.reload);
-});
 
 // default `gulp` task
-gulp.task('default', ['cleanupDist','scss', 'jsLibs', 'js', 'html', 'images', 'watch', 'browser-sync']);
+gulp.task('default', ['cleanupDist', 'serve']);
 
-/*gulp.task('default', function () {
-  runSequence('cleanupDist','scss', 'jsLibs', 'js', 'html', 'images', 'browser-sync','watch');
-}); -> runSequence must be installed*/
+// dev worker which starts all important tasks
+gulp.task('devWorker',['html', 'scss', 'jsLibs', 'js', 'images', 'fonts']);
 
 // builder with minify (css and js) files `gulp build`
-gulp.task('build', ['cleanupDist','html', 'images', 'jsLibs', 'build:js', 'build:scss']);
+gulp.task('build', ['cleanupDist','html', 'images', 'jsLibs', 'data', 'fonts', 'build:js', 'build:scss']);
