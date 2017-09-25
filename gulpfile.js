@@ -1,3 +1,8 @@
+/*
+ * Gulp-Worker
+ * Version: 2.0.0
+ * Author: Martin Quade
+*/
 ///////////////////////////////
 // Requiered Gulp Plugins
 ///////////////////////////////
